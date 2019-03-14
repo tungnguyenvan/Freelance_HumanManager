@@ -13,6 +13,7 @@ import java.util.List;
 
 public class HumanManager extends SQLiteOpenHelper {
     private static final String TAG = HumanManager.class.getSimpleName();
+    private static HumanManager instance;
 
     private static final String DATABASE_NAME = "human_manager";
     private static final int DATABASE_VERSION = 1;
@@ -23,8 +24,16 @@ public class HumanManager extends SQLiteOpenHelper {
     private static final String BIRTH_DAY = "birth_day";
     private static final String IMAGE = "image";
 
-    public HumanManager(Context context) {
+    private HumanManager(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    }
+
+    public static HumanManager getInstance(Context context) {
+        if (instance == null) {
+            instance = new HumanManager(context);
+        }
+
+        return instance;
     }
 
     @Override
@@ -39,7 +48,7 @@ public class HumanManager extends SQLiteOpenHelper {
 
     }
 
-    public void insert(HumanModel model) {
+    public void insert(HumanModel model, HumanManagerListener humanManagerListener) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
@@ -47,8 +56,14 @@ public class HumanManager extends SQLiteOpenHelper {
         values.put(BIRTH_DAY, model.getBuilder().getBirthDay());
         values.put(IMAGE, model.getBuilder().getImage());
 
-        db.insert(TABLE_NAME, null, values);
+        long id  = db.insert(TABLE_NAME, null, values);
         db.close();
+
+        if (id > 0) {
+            humanManagerListener.onFinished(id);
+        } else {
+            humanManagerListener.onFail();
+        }
     }
 
     public HumanModel get(int id) {
@@ -65,7 +80,7 @@ public class HumanManager extends SQLiteOpenHelper {
                 .setImage(cursor.getString(3)).build();
     }
 
-    public List<HumanModel> gets() {
+    public void gets(HumanManagerGets humanManagerGets) {
         SQLiteDatabase db = this.getReadableDatabase();
         List<HumanModel> humanModels = new ArrayList<>();
 
@@ -84,6 +99,38 @@ public class HumanManager extends SQLiteOpenHelper {
             } while (cursor.moveToNext());
         }
 
-        return humanModels;
+        if (humanModels.size() > 0) {
+            humanManagerGets.onFinished(humanModels);
+        }
+    }
+
+    public int edit(HumanModel humanModel) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(NAME, humanModel.getBuilder().getName());
+        contentValues.put(BIRTH_DAY, humanModel.getBuilder().getBirthDay());
+        contentValues.put(IMAGE, humanModel.getBuilder().getImage());
+
+        return db.update(TABLE_NAME,
+                contentValues,
+                ID + " = " + humanModel.getBuilder().getId(),
+                null);
+    }
+
+    public int delete(int id) {
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        return db.delete(TABLE_NAME, ID + " = " + id, null);
+    }
+
+    public interface HumanManagerListener {
+        void onFinished(long id);
+        void onFail();
+    }
+
+    public interface HumanManagerGets {
+        void onFinished(List<HumanModel> humanModels);
+        void onFail();
     }
 }

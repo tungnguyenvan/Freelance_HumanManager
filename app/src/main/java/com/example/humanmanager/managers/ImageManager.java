@@ -4,18 +4,29 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.util.Base64;
+import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 
 public class ImageManager {
+    private static final String TAG = ImageManager.class.getSimpleName();
+    private static ImageManager instance;
 
-    public ImageManager() {
+    private ImageManager() {
         // Constructor
     }
 
-    public String toBase64(Uri uri) {
+    public static ImageManager getInstance() {
+        if (instance == null) {
+            instance = new ImageManager();
+        }
+
+        return instance;
+    }
+
+    public String toBase64(Bitmap bitmap) {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        Bitmap bitmap = BitmapFactory.decodeFile(String.valueOf(uri));
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
         byte[] imageBytes = baos.toByteArray();
 

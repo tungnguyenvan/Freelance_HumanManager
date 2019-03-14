@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.humanmanager.R;
+import com.example.humanmanager.managers.ImageManager;
 import com.example.humanmanager.models.HumanModel;
 
 import org.w3c.dom.Text;
@@ -25,7 +26,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
     private List<HumanModel> mHumanModels;
     private MainActivityIMP mMainActivityIMP;
 
-    public MainAdapter(Context mContext, List<HumanModel> mHumanModels, MainActivityIMP mMainActivityIMP) {
+    public MainAdapter(Context mContext, MainActivityIMP mMainActivityIMP, List<HumanModel> mHumanModels) {
         this.mContext = mContext;
         this.mHumanModels = mHumanModels;
         this.mMainActivityIMP = mMainActivityIMP;
@@ -39,7 +40,10 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
-
+        viewHolder.setId(mHumanModels.get(i).getBuilder().getId());
+        viewHolder.setName(mHumanModels.get(i).getBuilder().getName());
+        viewHolder.setBirthDay(mHumanModels.get(i).getBuilder().getBirthDay());
+        viewHolder.setImage(mHumanModels.get(i).getBuilder().getImage());
     }
 
     @Override
@@ -82,7 +86,8 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.ViewHolder> {
         }
 
         public void setImage(String imageBase64) {
-
+            if (imageBase64 != null)
+                mImageView.setImageBitmap(ImageManager.getInstance().toImage(imageBase64));
         }
 
         public void setName(String name) {
